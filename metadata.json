@@ -1,0 +1,7 @@
+{
+  "name": "Digital Ration Card System & Awareness Portal",
+  "description": "A comprehensive multilingual platform for digital ration card applications, status tracking, and awareness about government schemes.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
