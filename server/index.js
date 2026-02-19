@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-console.log("GEMINI KEY LOADED:", process.env.GEMINI_API_KEY ? "YES ✅" : "NO ❌");
+console.log("GROQ KEY LOADED:", process.env.GROQ_API_KEY ? "YES ✅" : "NO ❌");
 console.log("ADMIN EMAIL:", process.env.ADMIN_EMAIL ? "YES ✅" : "NO ❌");
 
 const app = express();
@@ -273,39 +273,40 @@ app.put('/api/applications/:id/status', async (req, res) => {
     }
 });
 
-// AI SERVICE — Fixed model name ✅
+// AI SERVICE — Groq ✅
 app.post('/api/ai', async (req, res) => {
     const { query } = req.body;
-    const API_KEY = process.env.GEMINI_API_KEY;
+    const API_KEY = process.env.GROQ_API_KEY;
 
     if (!API_KEY) {
-        return res.status(500).json({ error: 'Gemini API Key not configured on server' });
+        return res.status(500).json({ error: 'Groq API Key not configured on server' });
     }
 
     try {
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `You are a helpful assistant for the Digital Ration Card System.
-                            Answer questions about ration cards, eligibility, and application status concisely.
-                            Do not answer questions unrelated to the ration card system.
-                            User Question: ${query}`
-                        }]
-                    }]
-                })
-            }
-        );
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'llama-3.3-70b-versatile',
+                messages: [{
+                    role: 'user',
+                    content: `You are a helpful assistant for the Digital Ration Card System.
+                    Answer questions about ration cards, eligibility, and application status concisely.
+                    Do not answer questions unrelated to the ration card system.
+                    User Question: ${query}`
+                }],
+                max_tokens: 500
+            })
+        });
 
         const data = await response.json();
         if (!response.ok) {
-            throw new Error(data.error?.message || 'Failed to fetch from Gemini');
+            throw new Error(data.error?.message || 'Groq API error');
         }
-        res.json({ response: data.candidates[0].content.parts[0].text });
+        res.json({ response: data.choices[0].message.content });
     } catch (error) {
         console.error('AI Error:', error);
         res.status(500).json({ error: 'Failed to generate response' });
