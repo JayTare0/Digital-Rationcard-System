@@ -1,9 +1,11 @@
 import { RationCard, User, ApplicationStatus } from '../types';
 
+const BASE_URL = import.meta.env.VITE_API_URL || '';
+
 export const mockApi = {
   // Application CRUD
   async submitApplication(data: Partial<RationCard>): Promise<RationCard> {
-    const response = await fetch('/api/applications', {
+    const response = await fetch(`${BASE_URL}/api/applications`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -13,25 +15,25 @@ export const mockApi = {
   },
 
   async getApplicationByAadhar(aadhar: string): Promise<RationCard | null> {
-    const response = await fetch(`/api/applications/aadhar/${aadhar}`);
+    const response = await fetch(`${BASE_URL}/api/applications/aadhar/${aadhar}`);
     if (!response.ok) throw new Error('Failed to fetch application');
     return response.json();
   },
 
   async getUserApplications(userId: string): Promise<RationCard[]> {
-    const response = await fetch(`/api/applications/user/${userId}`);
+    const response = await fetch(`${BASE_URL}/api/applications/user/${userId}`);
     if (!response.ok) throw new Error('Failed to fetch user applications');
     return response.json();
   },
 
   async getAllApplications(): Promise<RationCard[]> {
-    const response = await fetch('/api/applications');
+    const response = await fetch(`${BASE_URL}/api/applications`);
     if (!response.ok) throw new Error('Failed to fetch applications');
     return response.json();
   },
 
   async updateStatus(id: string, status: ApplicationStatus): Promise<boolean> {
-    const response = await fetch(`/api/applications/${id}/status`, {
+    const response = await fetch(`${BASE_URL}/api/applications/${id}/status`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
@@ -39,12 +41,11 @@ export const mockApi = {
     return response.ok;
   },
 
-  // ✅ FIX 1: Login now sends password properly
   async login(email: string, password: string): Promise<User | null> {
-    const response = await fetch('/api/users/login', {
+    const response = await fetch(`${BASE_URL}/api/users/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),  // ✅ was 'pass', now 'password'
+      body: JSON.stringify({ email, password }),
     });
     if (response.status === 404) return null;
     if (response.status === 401) throw new Error('Incorrect password');
@@ -52,12 +53,11 @@ export const mockApi = {
     return response.json();
   },
 
-  // ✅ FIX 3: Register now sends password
   async register(username: string, email: string, password: string): Promise<User> {
-    const response = await fetch('/api/users/register', {
+    const response = await fetch(`${BASE_URL}/api/users/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password }),  // ✅ Added password
+      body: JSON.stringify({ username, email, password }),
     });
     if (!response.ok) {
       const err = await response.json();
@@ -67,18 +67,18 @@ export const mockApi = {
   },
 
   async getAllUsers(): Promise<User[]> {
-    const response = await fetch('/api/users');
+    const response = await fetch(`${BASE_URL}/api/users`);
     if (!response.ok) throw new Error('Failed to fetch users');
     return response.json();
   },
 
   async deleteUser(id: string): Promise<boolean> {
-    const response = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+    const response = await fetch(`${BASE_URL}/api/users/${id}`, { method: 'DELETE' });
     return response.ok;
   },
 
   async createUser(user: Partial<User> & { password: string }): Promise<User> {
-    const response = await fetch('/api/users/create', {
+    const response = await fetch(`${BASE_URL}/api/users/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(user)
