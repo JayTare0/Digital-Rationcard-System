@@ -20,8 +20,9 @@ const SALT_ROUNDS = 10;              // ✅ FIX: Salt rounds for bcrypt
 
 app.use(cors({
     origin: [
-        'https://yourusername.github.io',  // 👈 replace with your actual GitHub Pages URL
-        'http://localhost:5173',            // for local development
+        'https://digital-rationcard-system.vercel.app',
+        'https://digital-ration-card.com',
+        'http://localhost:5173',
         'http://localhost:3000'
     ]
 }));
