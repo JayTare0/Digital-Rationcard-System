@@ -18,7 +18,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const SALT_ROUNDS = 10;              // ✅ FIX: Salt rounds for bcrypt
 
-app.use(cors());
+app.use(cors({
+    origin: [
+        'https://yourusername.github.io',  // 👈 replace with your actual GitHub Pages URL
+        'http://localhost:5173',            // for local development
+        'http://localhost:3000'
+    ]
+}));
 app.use(express.json());
 
 // ============================================================
