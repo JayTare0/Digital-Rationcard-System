@@ -6,7 +6,6 @@ import dbPromise from './database.js';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
-// ✅ Fix: Always find .env relative to this file's location
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -16,7 +15,7 @@ console.log("ADMIN EMAIL:", process.env.ADMIN_EMAIL ? "YES ✅" : "NO ❌");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SALT_ROUNDS = 10;              // ✅ FIX: Salt rounds for bcrypt
+const SALT_ROUNDS = 10;
 
 app.use(cors({
     origin: [
@@ -28,22 +27,16 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// ============================================================
-// ✅ FIX 1 + FIX 2 + FIX 3 — USERS / AUTH API
-// ============================================================
-
-// REGISTER — Now saves hashed password
+// REGISTER
 app.post('/api/users/register', async (req, res) => {
-    const { username, email, password } = req.body;  // ✅ FIX 3: Accept password
+    const { username, email, password } = req.body;
     console.log('Register attempt:', { username, email, password: password ? 'PROVIDED' : 'MISSING' });
     const db = await dbPromise;
 
-    // Validate all fields are present
     if (!username || !email || !password) {
         return res.status(400).json({ error: 'Username, email and password are required' });
     }
 
-    // Validate password length
     if (password.length < 6) {
         return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
@@ -54,14 +47,13 @@ app.post('/api/users/register', async (req, res) => {
             return res.status(400).json({ error: 'User already exists with this email' });
         }
 
-        // ✅ FIX 3: Hash the password before saving
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
         const newUser = {
             id: Math.random().toString(36).substr(2, 9),
             username,
             email,
-            password: hashedPassword,   // ✅ FIX 3: Save hashed password
+            password: hashedPassword,
             role: 'user',
             createdAt: new Date().toISOString()
         };
@@ -71,7 +63,6 @@ app.post('/api/users/register', async (req, res) => {
             [newUser.id, newUser.username, newUser.email, newUser.password, newUser.role, newUser.createdAt]
         );
 
-        // ✅ Never send password back to frontend
         const { password: _, ...safeUser } = newUser;
         res.json(safeUser);
 
@@ -80,17 +71,15 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
-// LOGIN — Now validates password properly
+// LOGIN
 app.post('/api/users/login', async (req, res) => {
-    const { email, password } = req.body;   // ✅ FIX 1: Accept password now
+    const { email, password } = req.body;
     const db = await dbPromise;
 
-    // Validate fields
     if (!email || !password) {
         return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // ✅ FIX 2: Admin login now checks password from .env (not hardcoded)
     if (email === process.env.ADMIN_EMAIL) {
         const adminPasswordMatch = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH);
         if (!adminPasswordMatch) {
@@ -112,13 +101,11 @@ app.post('/api/users/login', async (req, res) => {
             return res.status(404).json({ error: 'No account found with this email' });
         }
 
-        // ✅ FIX 1: Compare entered password with stored hash
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
             return res.status(401).json({ error: 'Incorrect password' });
         }
 
-        // ✅ Never send password back to frontend
         const { password: _, ...safeUser } = user;
         res.json(safeUser);
 
@@ -127,7 +114,7 @@ app.post('/api/users/login', async (req, res) => {
     }
 });
 
-// ADMIN CREATE USER — Also hashes password
+// ADMIN CREATE USER
 app.post('/api/users/create', async (req, res) => {
     const { username, email, role, password } = req.body;
     const db = await dbPromise;
@@ -142,7 +129,6 @@ app.post('/api/users/create', async (req, res) => {
             return res.status(400).json({ error: 'User already exists' });
         }
 
-        // ✅ Hash password for admin-created users too
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
         const newUser = {
@@ -167,11 +153,10 @@ app.post('/api/users/create', async (req, res) => {
     }
 });
 
-// GET ALL USERS — Never expose passwords
+// GET ALL USERS
 app.get('/api/users', async (req, res) => {
     const db = await dbPromise;
     try {
-        // ✅ Exclude password field from query
         const users = await db.all('SELECT id, username, email, role, createdAt FROM users');
         res.json(users);
     } catch (error) {
@@ -191,10 +176,7 @@ app.delete('/api/users/:id', async (req, res) => {
     }
 });
 
-// ============================================================
-// APPLICATIONS API (unchanged — was already working)
-// ============================================================
-
+// APPLICATIONS API
 app.post('/api/applications', async (req, res) => {
     const data = req.body;
     const db = await dbPromise;
@@ -291,10 +273,7 @@ app.put('/api/applications/:id/status', async (req, res) => {
     }
 });
 
-// ============================================================
-// AI SERVICE
-// ============================================================
-
+// AI SERVICE — Fixed model name ✅
 app.post('/api/ai', async (req, res) => {
     const { query } = req.body;
     const API_KEY = process.env.GEMINI_API_KEY;
@@ -305,7 +284,7 @@ app.post('/api/ai', async (req, res) => {
 
     try {
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
