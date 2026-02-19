@@ -1,8 +1,9 @@
+const BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export const aiService = {
     async generateResponse(query: string): Promise<string> {
         try {
-            const response = await fetch('/api/ai', {
+            const response = await fetch(`${BASE_URL}/api/ai`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
