@@ -90,7 +90,7 @@ const Login: React.FC = () => {
             <Link to="/register" className="text-blue-600 font-bold hover:underline">Create Account</Link>
           </p>
           <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-500 leading-relaxed italic">
-            <strong>Admin Test:</strong> admin@drc.gov.in / Admin@123
+
           </div>
         </div>
       </div>
